@@ -1,0 +1,124 @@
+#compdef fs
+
+_afs_users() {
+  _alternative \
+    'common:common users:(system:anyuser)' \
+    'local:local users:_users'
+}
+
+_afs_modes() {
+  local -a privs
+  privs=(
+  'a[administer]'
+  'd[delete]'
+  'i[insert]'
+  'k[lock]'
+  'l[lookup]'
+  'r[read]'
+  'w[write]'
+  'all[all seven (rlidwka)]'
+  'none[no permissions, other than through remaining groups]'
+  'read[read and lookup (rl)]'
+  'write[all except admin (rlidwk)]'
+  )
+
+# A, B, C, D, E, F, G, H
+
+  # fixme: mixing human readable and single letter within one arg should be prevented
+  _values -O copts -S '' privilege $privs
+
+}
+
+_fs() {
+  local curcontex=$curcontex state line
+  _arguments -C \
+    '(-): :->command' \
+    '(-)*:: :->arguments' \
+    && return
+
+  case $state in
+    (command)
+      local -a commands
+      commands=(
+      "apropos:search by help text"
+      "bypassthreshold:get/set cache bypass file size threshold"
+      "checkservers:check local cell's servers"
+      "checkvolumes:check volumeID/name mappings"
+      "cleanacl:clean up access control list"
+      "copyacl:copy access control list"
+      "discon:disconnection mode"
+      "diskfree:show server disk space usage"
+      "examine:display file/volume status"
+      "exportafs:enable/disable translators to AFS"
+      "flush:flush file from cache"
+      "flushall:flush all data from the cache"
+      "flushmount:flush mount symlink from cache"
+      "flushvolume:flush all data in volume"
+      "getcacheparms:get cache usage info"
+      "getcalleraccess:list callers access"
+      "getcellstatus:get cell status"
+      "getclientaddrs:get client network interface addresses"
+      "getcrypt:get cache manager encryption flag"
+      "getfid:get fid for file(s)"
+      "getserverprefs:get server ranks"
+      "help:get help on commands"
+      "listacl:list access control list"
+      "listaliases:list configured cell aliases"
+      "listcells:list configured cells"
+      "listquota:list volume quota"
+      "lsmount:list mount point"
+      "messages:control Cache Manager messages"
+      "mkmount:make mount point"
+      "newalias:configure new cell alias"
+      "newcell:configure new cell"
+      "nukenfscreds:nuke credentials for NFS client"
+      "precache:set precache size"
+      "quota:show volume quota usage"
+      "rmmount:remove mount point"
+      "rxstatpeer:Manage per peer RX statistics"
+      "rxstatproc:Manage per process RX statistics"
+      "setacl:set access control list"
+      "setcachesize:set cache size"
+      "setcbaddr:configure callback connection address"
+      "setcell:set cell status"
+      "setclientaddrs:set client network interface addresses"
+      "setcrypt:set cache manager encryption flag"
+      "setquota:set volume quota"
+      "setserverprefs:set server ranks"
+      "setvol:set volume status"
+      "storebehind:store to server after file close"
+      "sysname:get/set sysname (i.e. @sys) value"
+      "uuid:manage the UUID for the cache manager"
+      "version:show version"
+      "whereis:list file's location"
+      "whichcell:list file's cell"
+      "wscell:list workstation's cell"
+      )
+      _describe -t fscommands "fs commands" commands && return 0
+      ;;
+    (arguments)
+      if [[ $words[1] == 'setacl' ]] ; then
+        # option 1:
+        # <dir> <user> <rights> <user> <rights> <user> <rights> ... (user rights pairs)
+        # option 2:
+        # <dir> <dir> <dir> ... (dirs) <user> <rights>
+        # option 3:
+        # -dir <dir> ... dirs -acl <user> <rights> ... (user rights pairs)
+        _arguments \
+          '(- :)-help[display help message]' \
+          '(-help)-dir[list of directories]:: :_directories' \
+          '(-help -dir)1:: : _directories' \
+          '(-help -dir)2:: : _afs_users' \
+          '(-help -dir)3:: : _afs_modes' \
+          '(-help -dir)4:: : _afs_users' \
+          '(-help -dir)5:: : _afs_modes' \
+          '(-help -dir)6:: : _afs_users' \
+          '(-help -dir)7:: : _afs_modes' \
+          '(-help -dir)8:: : _afs_users' \
+          '(-help -dir)9:: : _afs_modes'
+      fi
+      ;;
+  esac
+}
+
+_fs
