@@ -1,9 +1,19 @@
 #compdef fs
 
+# overridable by user
+(( $+functions[_common_afs_users] )) ||
+_common_afs_users() {
+  local -a common_names
+  common_names=(
+  "system\:anyuser:anybody in the world"
+  )
+  _describe -t afsgroups "common afs names" common_names
+}
+
 _afs_users() {
   _alternative \
-    'common:common users:(system:anyuser)' \
-    'local:local users:_users'
+    'local:local users: _users' \
+    'common:common use cases: _common_afs_users'
 }
 
 _afs_modes() {
@@ -100,13 +110,24 @@ _fs() {
       if [[ $words[1] == 'setacl' ]] ; then
         # option 1:
         # <dir> <user> <rights> <user> <rights> <user> <rights> ... (user rights pairs)
+        # i.e. one directory, followed by arbitrarily many user-rights pairs
         # option 2:
-        # <dir> <dir> <dir> ... (dirs) <user> <rights>
-        # option 3:
-        # -dir <dir> ... dirs -acl <user> <rights> ... (user rights pairs)
-        _arguments \
+        # -dir <dir> ... dirs -acl <user> <rights> ... (user rights pairs) -dir <dir> ... dirs -acl <user> <rights> ... (user rights pairs) ...
+        # i.e. -dir and -acl in any order and more than once
+        _dir_or_acl() {
+          _alternative \
+          'directories:directories:_path_files -/' \
+          'options:options:(-acl)'
+        }
+        # IF NEITHER -acl or -dir
+        #
+        # integer NORMARG
+        # typeset -A opt_args
+        # 
+        # hacked for option 1, better shift to allow for more than 4 users
+        _arguments -n \
           '(- :)-help[display help message]' \
-          '(-help)-dir[list of directories]:: :_directories' \
+          '(-help :)-dir[list of directories]:*:: :_dir_or_acl' \
           '(-help -dir)1:: : _directories' \
           '(-help -dir)2:: : _afs_users' \
           '(-help -dir)3:: : _afs_modes' \
@@ -115,7 +136,7 @@ _fs() {
           '(-help -dir)6:: : _afs_users' \
           '(-help -dir)7:: : _afs_modes' \
           '(-help -dir)8:: : _afs_users' \
-          '(-help -dir)9:: : _afs_modes'
+          '(-help -dir)9:: : _afs_modes' && ret=0
       fi
       ;;
   esac
